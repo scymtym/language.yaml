@@ -1,0 +1,27 @@
+#+TITLE:       language.yaml README
+#+AUTHOR:      Jan Moringen
+#+EMAIL:       jmoringe@techfak.uni-bielefeld.de
+#+DESCRIPTION: Processing of YAML 1.2 documents
+#+KEYWORDS:    YAML, parser, unparser, esrap
+#+LANGUAGE:    en
+
+* TODO Introduction
+
+  This system provides processing of [[http://www.yaml.org/spec/1.2/spec.html][YAML 1.2]] documents.
+
+* TODO Tutorial
+
+* TODO Dictionary
+
+* Related Work
+
+  * http://www.yaml.org/spec/1.2/spec.html :: YAML specification
+  * https://github.com/jasom/nyaml :: A lisp native YAML
+       parser. Currently a work-in-progress
+  * https://github.com/eudoxia0/cl-yaml :: A YAML parser and emitter
+       built on top of libyaml. Uses the cl-libyaml library.
+
+* Settings                                                         :noexport:
+
+#+OPTIONS: H:2 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
