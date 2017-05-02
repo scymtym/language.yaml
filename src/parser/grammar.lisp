@@ -16,6 +16,14 @@
 
 (cl:in-package #:language.yaml.parser)
 
+#+esrap.grammar-class
+(defgrammar #:cmake
+    (:use #:whitespace
+          #:literals
+          #:comments))
+#+esrap.grammar-class
+(in-grammar #:cmake)
+
 ;;; Utility functions and rules
 
 (defun make-scalar-node (style tag anchor content start end)
