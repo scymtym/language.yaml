@@ -1189,10 +1189,14 @@
                 (if success?
                     (values production position/new success?)
                     (values nil        position     nil))))))))
+(defun s-l+block-indented/helper2 (text position end)
+  (let ((*n* (1+ *n*)))
+    (parse 'unparsed text :start position :end end :junk-allowed t)))
 (defrule s-l+block-indented
     (or (and (and)  (and)            #'s-l+block-indented/helper1)
         (and (and)  (and)            s-l+block-node)
-        (and e-node (? s-l-comments)))
+        (and e-node (? s-l-comments) ; #'s-l+block-indented/helper2
+             #+no (recovery (+ n 1))))
   (:function third))
 
 (defrule helper-ns-l-compact-sequence
@@ -1265,10 +1269,15 @@
   (let ((*c* :block-out))
     (parse 's-l+block-node text
            :start position :end end :raw t)))
+(defun c-l-block-map-implicit-value/helper2 (text position end)
+  (let ((*n* (1+ *n*)))
+    (parse 'unparsed text
+           :start position :end end :raw t)))
 (defrule c-l-block-map-implicit-value
     (and c-mapping-value
          (or (and (and)  (and)        #'c-l-block-map-implicit-value/helper1)
-             (and e-node s-l-comments)))
+             (and e-node s-l-comments ; #'c-l-block-map-implicit-value/helper2
+                  )))
   (:function second)
   (:function third))
 
@@ -1282,6 +1291,34 @@
     (make-collection-node :mapping '(:block :in-line) nil nil (list* entry entries) start end)))
 
 ;;; 8.2.3 Block Nodes
+
+(defrule unparsed-line
+    (and unparsed-indent (non-empty? unparsed-text) unparsed-break)
+  (:function second))
+
+(defrule unparsed
+    (and (or start-of-line (and unparsed-text unparsed-break))
+         (* unparsed-line))
+  (:destructure (line lines)
+    (node* (:unparsed :text (if line
+                                (list* line lines)
+                                lines)))))
+
+(defun unparsed-indent/helper (text position end)
+  (let ((n (max *n* 0)))
+    (multiple-value-call #'values
+      (parse `(and ,@(make-list n :initial-element 's-space)) ; TODO (* s-space ,n ,n)
+             text
+             :start position :end end :junk-allowed t)
+      (when (zerop n) t))))
+(defrule unparsed-indent #'unparsed-indent/helper)
+
+(defrule unparsed-text
+    (* (not (or <end-of-input> c-forbidden b-break)))
+  (:text t))
+
+(defrule unparsed-break
+    (or <end-of-input> (& c-forbidden) b-break (and)))
 
 (defrule s-l+block-node
     (or s-l+block-in-block s-l+flow-in-block))
@@ -1372,9 +1409,12 @@
 
 ;;; 9.1.4 Explicit Documents
 
+;; unparsed uses the global value of *n* which is 0
 (defrule l-explicit-document
     (and c-directives-end (or l-bare-document
-                              (and e-node (? s-l-comments))))
+                              (and e-node (? s-l-comments))
+                              #+later unparsed))
+  #+no recovery #+no unparsed
   (:function second))
 
 ;;; 9.1.5 Directives Documents
