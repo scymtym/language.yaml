@@ -6,6 +6,7 @@
 
 (cl:in-package #:language.yaml.tags)
 
+;; TODO move this registry into separate file
 (defvar *all-tags* (make-hash-table :test #'equal))
 
 (defun find-tag (name &key (if-does-not-exist #'error)) ; TODO name -> uri ?
