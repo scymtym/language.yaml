@@ -572,7 +572,7 @@
 (defrule nb-double-multi-line
     (and nb-ns-double-in-line (or s-double-next-line (* s-white)))
   (:destructure (first rest)
-    (list* first rest)))
+    (format nil "~A~{~%~A~}" first rest))) ; TODO good idea?
 
 ;;; 7.3.2 Single Quoted Style
 
@@ -614,10 +614,15 @@
 (defrule s-single-next-line
     (and s-flow-folded
          (? (and ns-single-char nb-ns-single-in-line
-                 (or s-single-next-line (* s-white))))))
+                 (or s-single-next-line (* s-white)))))
+  (:function second)
+  (:destructure (&optional first second rest)
+    (list* (concatenate 'string first second) rest))) ; TODO wrong for s-white case?
 
 (defrule nb-single-multi-line
-    (and nb-ns-single-in-line (or s-single-next-line (* s-white))))
+    (and nb-ns-single-in-line (or s-single-next-line (* s-white)))
+  (:destructure (first rest)
+    (format nil "~A~{ ~A~}" first rest)))
 
 ;;; 7.3.3 Plain Style
 
@@ -672,8 +677,8 @@
 
 (defrule ns-plain-multi-line
     (and ns-plain-one-line (* s-ns-plain-next-line))
-  (:destructure (first next)
-    (list* first next)))
+  (:destructure (first rest)
+    (format nil "~A~{~%~A~}" first rest)))
 
 ;;; 7.4 Flow Collection Styles
 
@@ -1046,7 +1051,7 @@
       ((:end-scalar :empty)
        '())
       (t
-       (list* first rest)))))
+       (format nil "~A~{~%~A~}" first rest))))) ; TODO good idea?
 
 ;;; 8.1.3 Folded Style
 
