@@ -73,7 +73,7 @@
                 (find-tag ,result))))
   (define-method :mapping  null                "tag:yaml.org,2002:map")
   (define-method :sequence null                "tag:yaml.org,2002:seq")
-  (define-method :scalar   (eql :non-specific) "tag:yaml.org,2002:str")
+  (define-method :scalar   (eql :non-specific) "tag:yaml.org,2002:str") ; TODO make constants in src/base/variables.lisp
   (define-method :sequence (eql :non-specific) "tag:yaml.org,2002:seq")
   (define-method :mapping  (eql :non-specific) "tag:yaml.org,2002:map"))
 
