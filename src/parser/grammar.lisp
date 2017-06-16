@@ -177,39 +177,54 @@
 
 (macrolet ((define-escape-rules (&rest specs)
              (let+ ((rule-names '())
-                    ((&flet+ make-rule ((name expression))
+                    ((&flet+ make-rule ((name expression &rest options))
                        (let ((rule-name (symbolicate '#:ns-esc- name)))
                          (push rule-name rule-names)
-                         `(defrule ,rule-name ,expression)))))
+                         `(defrule ,rule-name ,expression
+                            ,@options)))))
                `(progn
                   ,@(mapcar #'make-rule specs)
                   (defrule c-ns-esc-char
                       (and c-escape
-                           (or ,@(reverse rule-names))))))))
+                           (or ,@(reverse rule-names)))
+                    (:function second))))))
   (define-escape-rules
-    (null                #\0)
-    (bell                #\a)
-    (backspace           #\b)
-    (horizontal-tab      (or #\t #\Tab))
-    (line-feed           #\n)
-    (vertical-tab        #\v)
-    (form-feed           #\f)
-    (carriage-return     #\r)
-    (escape              #\e)
-    (space               #\ )
-    (double-quote        #\")
-    (slash               #\/)
-    (backslash           "\\")
-    (next-line           #\N)
-    (non-breaking-space  #\_)
-    (line-separator      #\L)
-    (paragraph-separator #\P)
-    (8-bit               (and #\x (* ns-hex-digit ; TODO later 2 2
-                                     )))
-    (16-bit              (and #\u (* ns-hex-digit ; TODO later 4 4
-                                     )))
-    (32-bit              (and #\U (* ns-hex-digit ; TODO later 8 8
-                                     )))))
+    (null                #\0              (:constant #\Nul))
+    (bell                #\a              (:constant #\Bel))
+    (backspace           #\b              (:constant #\Backspace))
+    (horizontal-tab      (or #\t #\Tab)   (:constant #\Tab))
+    (line-feed           #\n              (:constant #\Newline))
+    (vertical-tab        #\v              (:constant #\Vt))
+    (form-feed           #\f              (:constant #\Page))
+    (carriage-return     #\r              (:constant #\Return))
+    (escape              #\e              (:constant #\Escape))
+    (space               #\Space          (:constant #\Space))
+    (double-quote        #\"              (:constant #\"))
+    (slash               #\/              (:constant #\/))
+    (backslash           "\\"             (:constant "\\"))
+    (next-line           #\N              (:constant #\Newline))
+    (non-breaking-space  #\_              (:constant #\_))
+    (line-separator      #\L              (:constant #\Line_Separator))
+    (paragraph-separator #\P              (:constant #\Paragraph_Separator))
+    (8-bit               (and #\x (and ns-hex-digit ns-hex-digit))
+                         (:function second)
+                         (:text t)
+                         (:lambda (code)
+                           (code-char (parse-integer code :radix 16))))
+    (16-bit              (and #\u (and ns-hex-digit ns-hex-digit
+                                       ns-hex-digit ns-hex-digit))
+                         (:function second)
+                         (:text t)
+                         (:lambda (code)
+                           (code-char (parse-integer code :radix 16))))
+    (32-bit              (and #\U (and ns-hex-digit ns-hex-digit
+                                       ns-hex-digit ns-hex-digit
+                                       ns-hex-digit ns-hex-digit
+                                       ns-hex-digit ns-hex-digit))
+                         (:function second)
+                         (:text t)
+                         (:lambda (code)
+                           (code-char (parse-integer code :radix 16))))))
 
 ;;; 6.1 Indentation Spaces
 
