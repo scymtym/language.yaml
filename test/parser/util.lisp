@@ -53,23 +53,22 @@
 
 ;;;
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun find-data-files (type)
-    (directory
-     (merge-pathnames
-      (make-pathname :name :wild :type type)
-      (asdf:system-relative-pathname :language.yaml.parser "data/test-cases/dummy"))))
+(defun find-data-files (type)
+  (directory
+   (merge-pathnames
+    (make-pathname :name :wild :type type)
+    (asdf:system-relative-pathname :language.yaml.parser "data/test-cases/dummy"))))
 
-  (defun %print-without-earmuffs (stream thing colon? at?)
-    (declare (ignore colon? at?))
-    (write-string (ecase thing
-                    (*c*              "c")
-                    (*n*              "n")
-                    (*chomping-style* "t"))
-                  stream))
+(defun %print-without-earmuffs (stream thing colon? at?)
+  (declare (ignore colon? at?))
+  (write-string (ecase thing
+                  (*c*              "c")
+                  (*n*              "n")
+                  (*chomping-style* "t"))
+                stream))
 
-  (defun output-file-name (input rule bindings tag)
-    (merge-pathnames
-     (format nil "~(~A~@[~{~{.~/language.yaml.parser.test::%print-without-earmuffs/=~A~}~}~]~)~@[.~A~].output"
-             rule bindings tag)
-     input)))
+(defun output-file-name (input rule bindings tag)
+  (merge-pathnames
+   (format nil "~(~A~@[~{~{.~/language.yaml.parser.test::%print-without-earmuffs/=~A~}~}~]~)~@[.~A~].output"
+           rule bindings tag)
+   input))

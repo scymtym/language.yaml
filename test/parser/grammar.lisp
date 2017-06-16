@@ -35,7 +35,7 @@
                                        (when tag (list #\. (string-upcase tag)))))
                         ((&flet make-parse-form ()
                            `(architecture.builder-protocol:with-builder ('list)
-                              (parse ',rule input)))))
+                              (esrap:parse ',rule input)))))
                    `(test ,name
                       (let (,@bindings
                             (input  (read-file-into-string ,input))
