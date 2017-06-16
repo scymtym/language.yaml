@@ -1,0 +1,15 @@
+These test cases have been taken from version 0.10.0 of the
+YamlReference Haskell package.
+
+Several test-case files have been renamed to match the names in the
+YAML 1.2 specification:
+
+#+BEGIN_EXAMPLE
+  ns-l-in-line-mapping.n=2.input           -> ns-l-compact-mapping.n=2.input
+  ns-l-in-line-mapping.n=2.invalid.input   -> ns-l-compact-mapping.n=2.invalid.input
+  ns-l-in-line-mapping.n=2.invalid.output  -> ns-l-compact-mapping.n=2.invalid.output
+  ns-l-in-line-mapping.n=2.output          -> ns-l-compact-mapping.n=2.output
+  ns-l-in-line-sequence.n=3.input          -> ns-l-compact-sequence.n=3.input
+  ns-l-in-line-sequence.n=3.invalid.input  -> ns-l-compact-sequence.n=3.invalid.input
+  ns-l-in-line-sequence.n=3.invalid.output -> ns-l-compact-sequence.n=3.invalid.output
+#+END_EXAMPLE
