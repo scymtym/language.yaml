@@ -1,6 +1,6 @@
-;;;; native-builder.lisp --- TODO.
+;;;; native-builder.lisp --- Turns constructs into CL objects.
 ;;;;
-;;;; Copyright (C) 2013, 2014, 2016, 2017 Jan Moringen
+;;;; Copyright (C) 2013-2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -31,6 +31,14 @@
 
    ))                         ; TODO allocate the hash-table lazily?
 
+(defmethod bp:relate ((builder  native-builder)
+                      (relation cons)
+                      (left     t)
+                      (right    t)
+                      &rest args &key)
+  (let ((relation (bp:normalize-relation relation)))
+    (apply #'bp:relate builder relation left right args)))
+
 (defun note-node (builder anchor node)
   (when anchor
     (setf (gethash anchor (anchors builder)) node))
@@ -39,8 +47,8 @@
 ;;; Directive
 
 (defmethod bp:make-node ((builder native-builder)
-                      (kind    (eql :directive))
-                      &rest args &key name)
+                         (kind    (eql :directive))
+                         &rest args &key name)
   (apply #'make-directive-node builder name
          (remove-from-plist args :name)))
 
@@ -49,7 +57,7 @@
                                 &key
                                 handle
                                 prefix)
-  (log:info "~S -> ~S" handle prefix))
+  )
 
 ;;; Tag
 
@@ -59,7 +67,7 @@
                          ((:kind tag-kind))
                          prefix
                          suffix
-                         content)
+                         content) ; TODO bounds
   (ecase tag-kind
     (:verbatim
      content)
@@ -101,7 +109,7 @@
                              (node    string))
   (list :content node))
 
-(defmethod bp:node-relations ((builder native-builder)
+(defmethod bp:node-relations ((builder native-builder) ; TODO necessary?
                               (node    string))
   '())
 
@@ -125,43 +133,41 @@
                    (resolve-tag builder tag '() kind content))
                   (node (apply #'make-node-using-tag builder kind tag
                                :content content args)))
-    (log:info tag args node)
     (note-node builder anchor node)))
 
-(defmethod make-node-using-tag ((builder native-builder)
-                                (kind    (eql :scalar))
-                                (tag     (eql (find-tag "tag:yaml.org,2002:null")))
-                                &key content)
-  nil)
+;; TODO are these really called "core tags"?
+(macrolet ((define-core-tag-mapping
+               (tag (&optional (content-arg 'content content-arg-p)
+                     &rest keyword-args)
+                &body body)
+             `(defmethod make-node-using-tag
+                  ((builder native-builder)
+                   (kind    (eql :scalar))
+                   (tag     (eql (find-tag ,tag)))
+                   &key ,content-arg ,@keyword-args)
+                ,@(unless content-arg-p
+                    `((declare (ignore ,content-arg))))
+                ,@body)))
 
-(defmethod make-node-using-tag ((builder native-builder)
-                                (kind    (eql :scalar))
-                                (tag     (eql (find-tag "tag:yaml.org,2002:bool")))
-                                &key content)
-  (esrap:parse '(or parser.common-rules:boolean-literal/capital-case
-                    parser.common-rules:boolean-literal/lower-case)
-               content))                ; TODO may not accept TRUE
+  (define-core-tag-mapping "tag:yaml.org,2002:null" ()
+    nil)
 
-(defmethod make-node-using-tag ((builder native-builder)
-                                (kind    (eql :scalar))
-                                (tag     (eql (find-tag "tag:yaml.org,2002:int")))
-                                &key content radix)
-  (parse-integer content :radix radix :start (case radix
-                                               (8  2)
-                                               (16 2)
-                                               (t  0))))
+  (define-core-tag-mapping "tag:yaml.org,2002:bool" (content)
+    (esrap:parse '(or parser.common-rules:boolean-literal/capital-case
+                      parser.common-rules:boolean-literal/lower-case)
+                 content)) ; TODO may not accept TRUE
 
-(defmethod make-node-using-tag ((builder native-builder)
-                                (kind    (eql :scalar))
-                                (tag     (eql (find-tag "tag:yaml.org,2002:float")))
-                                &key content)
-  (esrap:parse 'parser.common-rules:float-literal content))
+  (define-core-tag-mapping "tag:yaml.org,2002:int" (content (radix 10))
+    (parse-integer content :radix radix :start (case radix
+                                                 (8  2)
+                                                 (16 2)
+                                                 (t  0))))
 
-(defmethod make-node-using-tag ((builder native-builder)
-                                (kind    (eql :scalar))
-                                (tag     (eql (find-tag "tag:yaml.org,2002:str")))
-                                &key content)
-  content)
+  (define-core-tag-mapping "tag:yaml.org,2002:float" (content)
+    (esrap:parse 'parser.common-rules:float-literal content))
+
+  (define-core-tag-mapping "tag:yaml.org,2002:str" (content)
+    content))
 
 ;;; Sequence
 
@@ -184,7 +190,6 @@
                          tag
                          anchor)
   (let ((tag (resolve-tag builder tag '() kind nil)))
-    (log:info tag)
     (note-node builder anchor (make-array 0 :adjustable t :fill-pointer 0))))
 
 #+no (defmethod bp:relate ((builder  native-builder)
@@ -195,8 +200,11 @@
   (vector-push-extend right left)
   left)
 
-(defstruct (list-node (:constructor make-list-node ()))
-  (elements (make-array 0 :adjustable t :fill-pointer 0)))
+(defstruct (list-node
+            (:constructor make-list-node ())
+            (:predicate nil)
+            (:copier nil))
+  (elements (make-array 0 :adjustable t :fill-pointer 0) :type vector :read-only t))
 
 (defmethod bp:make-node ((builder native-builder)
                          (kind    (eql :sequence))
@@ -235,21 +243,20 @@
                              (node     hash-table))
   (hash-table-alist node))
 
-#+no (defmethod bp:make-node ((builder native-builder)
+(defmethod bp:make-node ((builder native-builder)
                          (kind    (eql :mapping))
                          &key
                          tag
                          anchor)
    (let ((tag (resolve-tag builder tag '() kind nil)))
-     (log:info tag)
      (note-node builder anchor (make-hash-table :test #'equal))))
 
-#+no (defmethod bp:relate ((builder native-builder)
+(defmethod bp:relate ((builder native-builder)
                       (relate  (eql :entry))
                       (left    hash-table)
                       (right   cons)
                       &key)
-  (let-plus::let+ (((key . value) right)) ; TODO use let-plus?
+  (let-plus:let+ (((key . value) right))
     (setf (gethash key left) value))
   left)
 
@@ -272,11 +279,8 @@
                       (left    alist-node)
                       (right   cons)
                       &key)
-   (let-plus::let+ (((key . value) right))
-     (vector-push-extend
-      (cons (make-keyword (string-upcase key)) value)
-      (alist-node-elements left)))
-   left)
+  (vector-push-extend right (alist-node-elements left))
+  left)
 
 (defmethod bp:finish-node ((builder native-builder)
                            (kind    (eql :mapping))
@@ -311,7 +315,7 @@
                       (left    cons)
                       (right   t)
                       &key)
-  (setf (car left) right)
+  (setf (car left) (make-keyword (string-upcase right)))
   left)
 
 (defmethod bp:relate ((builder native-builder)
