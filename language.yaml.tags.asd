@@ -18,6 +18,8 @@
                 (:version "more-conditions"       "0.1")
                 (:version "utilities.print-items" "0.1")
 
+                "cl-ppcre"
+
                 (:version "language.yaml.base"    (:read-file-form "version-string.sexp")))
 
   :components  ((:module     "src"
