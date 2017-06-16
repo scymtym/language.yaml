@@ -514,14 +514,12 @@
 
 (defrule e-scalar
     (and)
-  (:lambda (content &bounds start end)
-    (let ((tag (node* (:tag :kind   :shorthand
-                            :prefix :secondary
-                            :suffix "null"))))
-      (make-scalar-node '(:flow :empty) tag nil content start end))))
+  (:constant '(:empty . nil)))
 
 (defrule e-node
-    e-scalar)
+    e-scalar
+  (:lambda (content &bounds start end)
+    (make-flow-node nil nil content start end)))
 
 ;;; 7.3.1 Double Quoted Style
 
@@ -875,19 +873,27 @@
     (or ns-flow-yaml-content
         c-flow-json-content))
 
+(defun make-null-tag () ; TODO put this somewhere
+  (node* (:tag :kind   :shorthand
+               :prefix :secondary
+               :suffix "null")))
 
-(defun make-str-tag () ; TODO put this somewhere
+(defun make-str-tag ()
   (node* (:tag :kind   :shorthand
                :prefix :secondary
                :suffix "str")))
 
 (defun+ make-flow-node (tag anchor (style . content) start end)
   (ecase style
+    (:empty
+     ;; TODO adding these tags should probably not be handled here
+     (make-scalar-node '(:flow :empty) (or tag (make-null-tag)) anchor content start end))
     (:plain
      (check-type content string)
      (make-scalar-node '(:flow :plain) tag anchor content start end))
     ((:single-quoted :double-quoted)
      (check-type content string)
+     ;; TODO see https://github.com/eudoxia0/cl-yaml/issues/7#issuecomment-232341465
      (make-scalar-node (list :flow style) (or tag (make-str-tag)) anchor content start end))
     ((:sequence :mapping)
      (make-collection-node style '(:flow :explicit) tag anchor content start end))))
