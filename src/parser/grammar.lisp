@@ -778,15 +778,15 @@
   (:destructure (key (separator value) &bounds start end)
     (declare (ignore separator))
     (node* (:key-value-pair :bounds (cons start end))
-      (1                               :key   key)
-      (architecture.builder-protocol:? :value value))))
+      (1                               (:key   . 1) key)
+      (architecture.builder-protocol:? (:value . 1) value))))
 
 (defrule c-ns-flow-map-empty-key-entry
     (and e-node c-ns-flow-map-separate-value)
   (:destructure (key value &bounds start end)
     (node* (:key-value-pair :bounds (cons start end))
-      (1 :key   key)
-      (1 :value value))))
+      (1 (:key   . 1) key)
+      (1 (:value . 1) value))))
 
 (defrule c-ns-flow-map-separate-value
     (and c-mapping-value (! ns-char) (or (and s-separate ns-flow-node)
@@ -801,8 +801,8 @@
   (:destructure (key (separator value) &bounds start end)
     (declare (ignore separator))
     (node* (:key-value-pair :bounds (cons start end))
-      (1                               :key   key)
-      (architecture.builder-protocol:? :value value))))
+      (1                               (:key   . 1) key)
+      (architecture.builder-protocol:? (:value . 1) value))))
 
 (defrule c-ns-flow-map-adjacent-value
     (and c-mapping-value (or (and (? s-separate) ns-flow-node)
@@ -829,8 +829,8 @@
          c-ns-flow-map-separate-value)
   (:destructure (key value &bounds start end)
     (node* (:key-value-pair :bounds (cons start end))
-      (1 :key   key)
-      (1 :value value))))
+      (1 (:key   . 1) key)
+      (1 (:value . 1) value))))
 
 (defun c-ns-flow-pair-json-key-entry/helper (text position end)
   (let ((*c* :flow-key))
@@ -841,8 +841,8 @@
          c-ns-flow-map-adjacent-value)
   (:destructure (key value &bounds start end)
     (node* (:key-value-pair :bounds (cons start end))
-      (1 :key   key)
-      (1 :value value))))
+      (1 (:key   . 1) key)
+      (1 (:value . 1) value))))
 
 (defconstant +implicit-key-lenght-limit+ 1024)
 
@@ -1261,8 +1261,8 @@
          (or l-block-map-explicit-value e-node))
   (:destructure (key value &bounds start end)
     (node* (:key-value-pair :bounds (cons start end))
-      (1 :key   key)
-      (1 :value value))))
+      (1 (:key   . 1) key)
+      (1 (:value . 1) value))))
 
 (defun c-l-block-map-explicit-key/helper (text position end)
   (let ((*c* :block-out))
@@ -1284,8 +1284,8 @@
          c-l-block-map-implicit-value)
   (:destructure (key value &bounds start end)
     (node* (:key-value-pair :bounds (cons start end))
-      (1 :key   key)
-      (1 :value value))))
+      (1 (:key   . 1) key)
+      (1 (:value . 1) value))))
 
 (defun ns-s-block-map-implicit-key/helper (text position end)
   (let ((*c* :block-key))
