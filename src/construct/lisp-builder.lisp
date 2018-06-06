@@ -260,8 +260,9 @@
     (setf (gethash key left) value))
   left)
 
+;; TODO hash-table or alist? proper strategy
 (defstruct (alist-node
-             (:constructor make-alist-node ()))
+            (:constructor make-alist-node ()))
   (elements (make-array 0 :adjustable t :fill-pointer 0)))
 
 (defmethod bp:make-node ((builder native-builder)
