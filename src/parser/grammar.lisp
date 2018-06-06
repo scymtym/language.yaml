@@ -1,6 +1,6 @@
 ;;;; grammar.lisp --- Grammar used by the parser module.
 ;;;;
-;;;; Copyright (C) 2013, 2016, 2017 Jan Moringen
+;;;; Copyright (C) 2013-2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -989,13 +989,22 @@
 
 ;;; 8.1.1.2 Chomping Indicator
 
+(defrule c-chomping-indicator-strip
+    #\-
+  (:constant :strip))
+
+(defrule c-chomping-indicator-keep
+    #\+
+  (:constant :keep))
+
+(defrule c-chomping-indicator-clip
+    (and)
+  (:constant :clip))
+
 (defrule c-chomping-indicator
-    (or #\- #\+ (and))
-  (:lambda (indicator)
-    (case indicator
-      (#\- :strip)
-      (#\+ :keep)
-      (t   :clip))))
+    (or c-chomping-indicator-strip
+        c-chomping-indicator-keep
+        c-chomping-indicator-clip))
 
 (defun end-block-scalar/helper (text position end)
   (declare (ignore text end))
