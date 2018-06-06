@@ -125,7 +125,8 @@
     b-break)
 
 (defrule b-non-content
-    b-break)
+    b-break
+  (:constant nil))
 
 ;;; 5.5 White Space Characters
 
@@ -295,16 +296,18 @@
 ;;; 6.4 Empty Lines
 
 (defrule l-empty
-    (and (or s-line-prefix s-indent-lt) b-as-line-feed))
+    (and (or s-line-prefix s-indent-lt) b-as-line-feed)
+  (:constant #.(string #\Newline)))
 
 ;;; 6.5 Line Folding
 
 (defrule b-l-trimmed
     (and b-non-content (+ l-empty))
-  (:function first))
+  (:constant #.(string #\Newline)))
 
 (defrule b-as-space
-    b-break)
+    b-break
+  (:constant " "))
 
 (defrule b-l-folded
     (or b-l-trimmed b-as-space))
