@@ -317,7 +317,8 @@
     (parse '(and (? s-separate-in-line) b-l-folded s-flow-line-prefix)
            text :start position :end end :raw t)))
 (defrule s-flow-folded
-    #'parse-s-flow-folded)
+    #'parse-s-flow-folded
+  (:function second))
 
 ;;; 6.6 Comments
 
@@ -337,7 +338,7 @@
     (and s-separate-in-line (? c-nb-comment-text) b-comment)
   (:destructure (separate text break)
     (declare (ignore separate))
-    (or text (when (and break (not (eq break :end-of-input))) '(()))))
+    (or text (when (not (eq break :end-of-input)) '(()))))
   (:error-report nil))
 
 (defrule s-l-comments
@@ -574,7 +575,8 @@
     (parse '(and (* s-white) c-escape b-non-content (* l-empty) s-flow-line-prefix)
            text :start position :end end :raw t)))
 (defrule s-double-escaped
-    #'parse-s-double-escaped)
+    #'parse-s-double-escaped
+  (:constant #.(string #\Newline)))
 
 (defrule s-double-break
     (or s-double-escaped s-flow-folded))
@@ -588,15 +590,16 @@
          (? (and ns-double-char
                  nb-ns-double-in-line
                  (or s-double-next-line (* s-white))))) ; TODO make a s-white* rule
-  (:function second)
-  (:destructure (&optional line-first line-rest more-lines)
+  (:destructure (break (&optional line-first line-rest more-lines tailing-whitespace))
     (when line-first
-      (list* (concatenate 'string (string line-first) line-rest) more-lines))))
+      (list* (concatenate 'string break (string line-first) line-rest) more-lines))))
 
 (defrule nb-double-multi-line
-    (and nb-ns-double-in-line (or s-double-next-line (* s-white)))
-  (:destructure (first rest)
-    (format nil "~A~{~%~A~}" first rest))) ; TODO good idea?
+    (and nb-ns-double-in-line (or (and s-double-next-line (and))
+                                  (and (and)              (* s-white))))
+  (:destructure (first (rest trailing-whitespace))
+    (declare (ignore trailing-whitespace))
+    (apply #'concatenate 'string first rest))) ; TODO good idea?
 
 ;;; 7.3.2 Single Quoted Style
 
@@ -1039,14 +1042,17 @@
     #'l-chomped-empty/helper)
 
 (defrule l-strip-empty
-    (and (* (and s-indent-le b-non-content)) (? l-trail-comments)))
+    (and (* (and s-indent-le b-non-content)) (? l-trail-comments))
+  (:constant nil))
 
 (defun l-keep-empty/helper (text position end)
   (let ((*c* :block-in))
     (parse '(* l-empty) text
            :start position :end end :raw t)))
 (defrule l-keep-empty
-    (and #'l-keep-empty/helper (? l-trail-comments)))
+    (and #'l-keep-empty/helper (? l-trail-comments))
+  (:function first)
+  (:text t))
 
 (defrule l-trail-comments
     (and s-indent-lt c-nb-comment-text b-comment (* (not-null? l-comment))))
@@ -1085,14 +1091,12 @@
     (and (or (and l-nb-literal-text (* b-nb-literal-next) b-chomped-last)
              (and end-block-scalar))
          l-chomped-empty)
-  (:function first)
-  (:destructure (&optional first rest last) ; TODO handle end-block-scalar case
-    (declare (ignore last))
+  (:destructure ((&optional first rest last) trailing) ; TODO handle end-block-scalar case
     (case first
       ((:end-scalar :empty)
        '())
       (t
-       (format nil "~A~{~%~A~}" first rest))))) ; TODO good idea?
+       (format nil "~A~{~%~A~}~@[~A~]~@[~A~]" first rest last trailing))))) ; TODO good idea?
 
 ;;; 8.1.3 Folded Style
 
@@ -1125,16 +1129,22 @@
     (and s-indent helper-s-nb-folded-text)
   (:function second))
 
-(defun l-nb-folded-lines/helper (text position end)
+(defun l-nb-folded-next-line/helper (text position end)
   (let ((*c* :block-in))
     (parse 'b-l-folded text
            :start position :end end :raw t)))
+(defrule l-nb-folded-next-line
+    (and #'l-nb-folded-next-line/helper s-nb-folded-text)
+  (:text t))
+
 (defrule l-nb-folded-lines
-    (and s-nb-folded-text (* (and #'l-nb-folded-lines/helper s-nb-folded-text))))
+    (and s-nb-folded-text (* l-nb-folded-next-line))
+  (:destructure (first rest)
+    (list* first rest)))
 
 (defrule s-nb-spaced-text
     (and s-indent s-white (* nb-char))
-  (:function third)
+  (:function rest)
   (:text t))
 
 (defun b-l-spaced/helper (text position end)
@@ -1142,19 +1152,22 @@
     (parse '(* l-empty) text
            :start position :end end :raw t)))
 (defrule b-l-spaced
-    (and b-as-line-feed #'b-l-spaced/helper))
+    (and b-as-line-feed #'b-l-spaced/helper)
+  (:constant #\Newline))
 
-(defrule l-nb-spaced
+#+does-not-exist-in-spec (defrule l-nb-spaced
     (and s-nb-spaced-text b-l-spaced s-nb-spaced-text))
 
-(defrule helper-l-nb-spaced-lines
+(defrule l-nb-spaced-next-line
     (and b-l-spaced s-nb-spaced-text)
-  (:function second))
+  (:text t))
 
 (defrule l-nb-spaced-lines
-    (and s-nb-spaced-text (* helper-l-nb-spaced-lines))
+    (and s-nb-spaced-text (* l-nb-spaced-next-line))
   (:destructure (line lines)
-    (list* line lines)))
+    (append (list (concatenate 'string #.(string #\Newline) line)) ; TODO nconc
+            lines
+            (list #.(string #\Newline)))))
 
 (defun l-nb-same-lines/helper (text position end)
   (let ((*c* :block-in))
@@ -1170,14 +1183,14 @@
 
 (defrule l-nb-diff-lines
     (and l-nb-same-lines (* helper-l-nb-diff-lines))
-  (:destructure (line lines)
-    (list* line lines)))
+  (:destructure (first rest)
+    (apply #'append first rest))) ; TODO nconc
 
 (defrule l-folded-content
     (and (or (and l-nb-diff-lines b-chomped-last)
              end-block-scalar)
          l-chomped-empty)
-  (:function first))
+  (:text t))
 
 ;;; 8.2.1 Block Sequences
 
