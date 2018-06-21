@@ -1,10 +1,12 @@
 ;;;; resolver.lisp --- Tag resolution mechanism.
 ;;;;
-;;;; Copyright (C) 2017 Jan Moringen
+;;;; Copyright (C) 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
 (cl:in-package #:language.yaml.tags)
+
+;;; `standard-expander'
 
 (defclass standard-expander ()
   ((shorthands :initarg  :shorthands
@@ -12,10 +14,42 @@
                :initform (alist-hash-table
                           '(("!"  . "!")
                             ("!!" . "tag:yaml.org,2002:"))
-                          :test #'equal))))
+                          :test #'equal)
+               :documentation
+               "Stores a mapping from shorthands to suffixes."))
+  (:documentation
+   "Expands shorthands like ! and !!."))
+
+(defmethod find-shorthand ((prefix   (eql :primary))
+                           (expander standard-expander)) ; TODO avoid this keyword stuff?
+  (gethash "!" (shorthands expander)))
+
+(defmethod find-shorthand ((prefix   (eql :secondary))
+                           (expander standard-expander))
+  (gethash "!!" (shorthands expander)))
+
+(defmethod find-shorthand ((prefix   string)
+                           (expander standard-expander))
+  (gethash prefix (shorthands expander)))
+
+(defmethod (setf find-shorthand) ((new-value string)
+                                  (prefix    (eql :primary))
+                                  (expander  standard-expander))
+  (setf (gethash "!" (shorthands expander)) new-value))
+
+(defmethod (setf find-shorthand) ((new-value string)
+                                  (prefix    (eql :secondary))
+                                  (expander  standard-expander))
+  (setf (gethash "!!" (shorthands expander)) new-value))
+
+(defmethod (setf find-shorthand) ((new-value string)
+                                  (prefix    string)
+                                  (expander  standard-expander))
+  (setf (gethash prefix (shorthands expander)) new-value))
 
 (flet ((expand (expander prefix suffix)
-         (concatenate 'string (gethash prefix (shorthands expander)) suffix)))
+         (concatenate 'string (find-shorthand prefix expander) suffix)))
+  (declare (inline expand))
 
   (defmethod expand-shorthand ((expander standard-expander)
                                (prefix   (eql :primary))
