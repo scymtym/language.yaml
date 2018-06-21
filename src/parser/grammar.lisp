@@ -653,9 +653,17 @@
 
 ;;; 7.3.3 Plain Style
 
+(defrule ns-plain-first/non-indicator
+    (and (! c-indicator) ns-char)
+  (:function second))
+
+(defrule ns-plain-first/indicator
+    (and (or #\: #\? #\-) (& ns-char))
+  (:function first))
+
 (defrule ns-plain-first
-    (or (and (! c-indicator) ns-char)
-        (and (or #\: #\? #\-) (& ns-char)))) ; spec differs in [126] here
+    (or ns-plain-first/non-indicator
+        ns-plain-first/indicator)) ; spec differs in [126] here
 
 (defun parse-ns-plain-safe (text position end)
   (parse (ecase *c*
