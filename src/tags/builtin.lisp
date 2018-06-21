@@ -1,6 +1,6 @@
 ;;;; builtin.lisp --- Builtin tags.
 ;;;;
-;;;; Copyright (C) 2017 Jan Moringen
+;;;; Copyright (C) 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -22,8 +22,8 @@
   (check-type kind node-kind)
   (once-only (name)
     `(setf (find-tag ,name)
-           (make-tag ,name ,kind #+later ,@(when documentation
-                                             `(:documentation ,documentation))))))
+           (make-tag ,name ,kind ,@(when documentation
+                                     `(:documentation ,documentation))))))
 
 ;;; 10.1.1.1. Generic Mapping
 

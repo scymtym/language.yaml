@@ -1,6 +1,6 @@
 ;;;; protocol.lisp --- Protocol provided by the tags module.
 ;;;;
-;;;; Copyright (C) 2017 Jan Moringen
+;;;; Copyright (C) 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -12,8 +12,12 @@
 
 (defgeneric id (tag))
 
-(defun make-tag (name kind)
-  (make-instance 'tag :name name :kind kind))
+(defgeneric documentation (tag))
+
+(defun make-tag (name kind &key documentation)
+  (apply #'make-instance 'tag :name name :kind kind
+         (when documentation
+           (list :documentation documentation))))
 
 ;;; Tag registry protocol
 

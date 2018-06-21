@@ -12,10 +12,14 @@
 
    #:language.yaml.base)
 
+  (:shadow
+   #:documentation)
+
   ;; Tag Protocol
   (:export
    #:name
    #:kind
+   #:documentation
 
    #:make-tag)
 

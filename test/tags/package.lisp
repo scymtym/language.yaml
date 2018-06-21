@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for unit tests of the tags module.
 ;;;;
-;;;; Copyright (C) 2017 Jan Moringen
+;;;; Copyright (C) 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -11,6 +11,9 @@
    #:fiveam
 
    #:language.yaml.tags)
+
+  (:shadowing-import-from #:language.yaml.tags
+   #:documentation)
 
   (:export
    #:run-tests)
