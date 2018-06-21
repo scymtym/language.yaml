@@ -31,6 +31,9 @@
 
    ))                         ; TODO allocate the hash-table lazily?
 
+(defun make-native-builder () ; TOOO initargs
+  (make-instance 'native-builder))
+
 (defmethod bp:relate ((builder  native-builder)
                       (relation cons)
                       (left     t)
