@@ -60,7 +60,9 @@
                                 &key
                                 handle
                                 prefix)
-  )
+  (format t "make-directive-node :tag ~s -> ~s~%" handle prefix)
+  (setf (language.yaml.tags:find-shorthand handle (expander builder)) prefix)
+  nil)
 
 ;;; Tag
 
