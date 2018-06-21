@@ -1302,7 +1302,8 @@
     (parse 's-l+block-indented text
            :start position :end end :raw t)))
 (defrule c-l-block-map-explicit-key
-    (and c-mapping-key #'c-l-block-map-explicit-key/helper))
+    (and c-mapping-key #'c-l-block-map-explicit-key/helper)
+  (:function second))
 
 (defun l-block-map-explicit-value/helper (text position end)
   (let ((*c* :block-out))
