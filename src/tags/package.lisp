@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for the tags module.
 ;;;;
-;;;; Copyright (C) 2017 Jan Moringen
+;;;; Copyright (C) 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -21,8 +21,12 @@
 
   ;; Protocol
   (:export
-   #:find-tag
-   #:expand-shorthand)
+   #:find-tag)
+
+  ;; Tag resolution protocol
+  (:export
+   #:expand-shorthand
+   #:find-shorthand)
 
   (:documentation
    "TODO"))
