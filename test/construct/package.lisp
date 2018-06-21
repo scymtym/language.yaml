@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for unit tests of the construct module.
 ;;;;
-;;;; Copyright (C) 2017 Jan Moringen
+;;;; Copyright (C) 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -12,6 +12,9 @@
 
    #:language.yaml.construct)
 
+  (:local-nicknames
+   (#:bp #:architecture.builder-protocol))
+
   (:export
    #:run-tests)
 
@@ -20,9 +23,9 @@
 
 (cl:in-package #:language.yaml.construct.test)
 
-(def-suite language.yaml.construct
+(def-suite :language.yaml.construct
   :description
   "Root test suite for the construct module.")
 
 (defun run-tests ()
-  (run! 'language.yaml.construct))
+  (run! :language.yaml.construct))
