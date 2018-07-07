@@ -1253,9 +1253,13 @@
                          :start (or position/new end) :end end :junk-allowed t))))
           (if (not success?)
               (values production position/new success?)
-              (let+ ((*n* (+ *n* 1 indent))
+              (let ((result (let ((*n* (+ *n* 1 indent)))
+                              (parse '(or ns-l-compact-sequence ns-l-compact-mapping) text
+                                     :start (or position/new end) :end end :raw t))))
+                result)
+              #+no (let+ ((*n* (+ *n* 1 indent))
                      ((&values production position/new success?)
-                      (parse '(or ns-l-compact-sequence ns-l-compact-mapping) text
+                      (parse '(or ns-l-compact-sequence ns-l-compact-mapping) text ; TODO force productions
                              :start (or position/new end) :end end :junk-allowed t)))
                 (if success?
                     (values production position/new success?)
