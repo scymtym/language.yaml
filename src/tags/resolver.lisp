@@ -90,26 +90,31 @@
       (error "TODO"))
     (setf (%kind-resolvers instance) kind-resolvers)))
 
+;;; Dispatch plain scalars to resolver registered for :scalar.
 (defmethod resolve-tag ((resolver     standard-resolver)
                         (tag          null)
                         (node-path    t)
                         (node-kind    t)
                         (node-content t))
-  (let ((resolver (assoc-value (kind-resolvers resolver) node-kind)))
-    (resolve-tag resolver tag node-path node-kind node-content)))
+  (let ((tag-or-resolver (assoc-value (kind-resolvers resolver) node-kind)))
+    (typecase tag-or-resolver
+      (tag tag-or-resolver)
+      (t   (resolve-tag
+            tag-or-resolver tag node-path node-kind node-content)))))
 
-(macrolet ((define-method (kind tag result)
+;;; Hard-coded tags for non-specific "!".
+(macrolet ((define-method (kind result)
              `(defmethod resolve-tag ((resolver     standard-resolver)
-                                      (tag          ,tag)
+                                      (tag          (eql :non-specific))
                                       (node-path    t)
                                       (node-kind    (eql ,kind))
                                       (node-content t))
                 (find-tag ,result))))
-  (define-method :mapping  null                "tag:yaml.org,2002:map")
-  (define-method :sequence null                "tag:yaml.org,2002:seq")
-  (define-method :scalar   (eql :non-specific) "tag:yaml.org,2002:str") ; TODO make constants in src/base/variables.lisp
-  (define-method :sequence (eql :non-specific) "tag:yaml.org,2002:seq")
-  (define-method :mapping  (eql :non-specific) "tag:yaml.org,2002:map"))
+  (define-method :scalar   "tag:yaml.org,2002:str") ; TODO make constants in src/base/variables.lisp
+  (define-method :sequence "tag:yaml.org,2002:seq")
+  (define-method :mapping  "tag:yaml.org,2002:map"))
+
+;;; `regex-resolver'
 
 (defclass regex-resolver ()
   ((rules :type    list
@@ -137,23 +142,4 @@
                         (node-content string))
   (loop :for (scanner tag args) :in (rules resolver)
         :when (or (not scanner) (ppcre:scan scanner node-content))
-        :return (values (find-tag tag) args)))
-
-;;; 10.3.2. Tag Resolution
-(defparameter *core-schema-scalar-resolution-rules*
-  '(("\\A(?:|null|Null|NULL|~)\\z"                                       "tag:yaml.org,2002:null"  ())
-    ("\\A(?:true|True|TRUE|false|False|FALSE)\\z"                        "tag:yaml.org,2002:bool"  ())
-    ("\\A[-+]?[0-9]+\\z"                                                 "tag:yaml.org,2002:int"   (:radix 10))
-    ("\\A0o[0-7]+\\z"                                                    "tag:yaml.org,2002:int"   (:radix 8))
-    ("\\A0x[0-9a-fA-F]+\\z"                                              "tag:yaml.org,2002:int"   (:radix 16))
-    ("\\A[-+]?(?:\\.[0-9]+|[0-9]+(:?\\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?\\z" "tag:yaml.org,2002:float" ())   ; Number
-    ("\\A[-+]?(?:\\.inf|\\.Inf|\\.INF)\\z"                               "tag:yaml.org,2002:float" ())   ; Infinity
-    ("\\A(?:\\.nan|\\.NaN|\\.NAN)\\z"                                    "tag:yaml.org,2002:float" ())   ; Not a number
-    (nil                                                                 "tag:yaml.org,2002:str"   ()))) ; Default
-
-(defparameter *core-schema-resolver*
-  (make-instance 'standard-resolver
-                 :kind-resolvers `((:scalar   . ,(make-instance 'regex-resolver
-                                                                :rules *core-schema-scalar-resolution-rules*))
-                                   (:sequence . t)
-                                   (:mapping  . t))))
+        :return (values (when tag (find-tag tag)) args)))

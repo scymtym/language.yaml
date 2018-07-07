@@ -30,7 +30,7 @@
                               (:file       "protocol")
                               (:file       "tag")
                               (:file       "resolver")
-                              (:file       "builtin"))))
+                              (:file       "builtin-schemas"))))
 
   :in-order-to ((test-op (test-op "language.yaml.tags/test"))))
 

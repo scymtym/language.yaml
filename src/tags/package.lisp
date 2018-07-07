@@ -25,7 +25,10 @@
 
   ;; Protocol
   (:export
-   #:find-tag)
+   #:find-tag
+   #:ensure-tag
+
+   #:define-tag)
 
   ;; Tag resolution protocol
   (:export
