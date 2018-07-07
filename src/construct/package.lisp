@@ -7,7 +7,8 @@
 (cl:defpackage #:language.yaml.construct
   (:use
    #:cl
-   #:alexandria)
+   #:alexandria
+   #:let-plus)
 
   (:local-nicknames
    (#:bp #:architecture.builder-protocol))

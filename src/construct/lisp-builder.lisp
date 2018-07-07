@@ -18,18 +18,13 @@
 
 ;;; Native builder
 
-(defclass native-builder ()
+(defclass native-builder (anchor-recording-mixin
+                          tag-based-builder-mixin)
   ((expander :initarg  :expander
              :reader   expander
-             :initform (make-instance 'language.yaml.tags::standard-expander))
-   (resolver :initarg  :resolver
-             :reader   resolver
-             :initform language.yaml.tags::*core-schema-resolver*)
-   ;; State
-   (anchors  :reader   anchors
-             :initform (make-hash-table :test #'equal)) ; TODO store this in the document?
-
-   ))                         ; TODO allocate the hash-table lazily?
+             :initform (make-instance 'language.yaml.tags::standard-expander)))
+  (:default-initargs
+   :resolver language.yaml.tags::*core-schema-resolver*))
 
 (defun make-native-builder () ; TOOO initargs
   (make-instance 'native-builder))
@@ -42,11 +37,6 @@
   (let ((relation (bp:normalize-relation relation)))
     (apply #'bp:relate builder relation left right args)))
 
-(defun note-node (builder anchor node)
-  (when anchor
-    (setf (gethash anchor (anchors builder)) node))
-  node)
-
 ;;; Directive
 
 (defmethod bp:make-node ((builder native-builder)
@@ -56,10 +46,15 @@
          (remove-from-plist args :name)))
 
 (defmethod make-directive-node ((builder native-builder)
+                                (name    (eql :yaml))
+                                &key version bounds)
+  (unless (equal version '(1 . 2))
+    (error "YAML version ~D.~D is not supported."
+           (car version) (cdr version))))
+
+(defmethod make-directive-node ((builder native-builder)
                                 (name    (eql :tag))
-                                &key
-                                handle
-                                prefix)
+                                &key handle prefix bounds)
   (format t "make-directive-node :tag ~s -> ~s~%" handle prefix)
   (setf (language.yaml.tags:find-shorthand handle (expander builder)) prefix)
   nil)
@@ -80,14 +75,6 @@
      (language.yaml.tags:expand-shorthand (expander builder) prefix suffix))
     (:non-specific
      tag-kind)))
-
-;;; Alias
-
-(defmethod bp:make-node ((builder native-builder)
-                         (kind    (eql :alias))
-                         &key
-                         anchor)
-  (gethash anchor (anchors builder)))
 
 ;;; Scalar
 ;;;
@@ -117,28 +104,6 @@
 (defmethod bp:node-relations ((builder native-builder) ; TODO necessary?
                               (node    string))
   '())
-
-(defun resolve-tag (builder tag node-path node-kind node-content)
-  (etypecase tag
-    (string
-     (find-tag tag))
-    ((or null (eql :non-specific))
-     (language.yaml.tags::resolve-tag
-      (resolver builder) tag node-path node-kind node-content))))
-
-(defmethod bp:make-node ((builder native-builder)
-                         (kind    (eql :scalar))
-                         &key
-                         tag
-                         anchor
-                         content)
-  (when (consp content) ; TODO
-    (break))
-  (let-plus:let+ (((let-plus:&values tag args)
-                   (resolve-tag builder tag '() kind content))
-                  (node (apply #'make-node-using-tag builder kind tag
-                               :content content args)))
-    (note-node builder anchor node)))
 
 ;; TODO are these really called "core tags"?
 (macrolet ((define-core-tag-mapping
@@ -205,18 +170,22 @@
   (vector-push-extend right left)
   left)
 
-(defstruct (list-node
+(defstruct (list-node ; TODO this breaks anchor/alias
             (:constructor make-list-node ())
             (:predicate nil)
             (:copier nil))
   (elements (make-array 0 :adjustable t :fill-pointer 0) :type vector :read-only t))
 
-(defmethod bp:make-node ((builder native-builder)
-                         (kind    (eql :sequence))
-                         &key
-                         tag
-                         anchor)
-  (note-node builder anchor (make-list-node)))
+(defmethod make-node-using-tag ((builder native-builder)
+                                (kind    (eql :sequence))
+                                (tag     (eql (find-tag "tag:yaml.org,2002:seq")))
+                                &key
+                                anchor)
+  ;; this is a problem since finish-node replaces the object
+  ;; but noting the node in finish-node would break recursive structures
+  ;; maybe register some kind of fixup when the node is referenced?
+  ; (note-node builder anchor (make-list-node))
+  (make-list-node))
 
 (defmethod bp:relate ((builder  native-builder)
                       (relation (eql :entry))
@@ -248,7 +217,7 @@
                              (node     hash-table))
   (hash-table-alist node))
 
-(defmethod bp:make-node ((builder native-builder)
+#+no (defmethod bp:make-node ((builder native-builder)
                          (kind    (eql :mapping))
                          &key
                          tag
@@ -270,15 +239,16 @@
             (:constructor make-alist-node ()))
   (elements (make-array 0 :adjustable t :fill-pointer 0)))
 
-(defmethod bp:make-node ((builder native-builder)
-                         (kind    (eql :mapping))
-                         &key
-                         tag
-                         anchor)
+(defmethod make-node-using-tag ((builder native-builder)
+                                (kind    (eql :mapping))
+                                (tag     (eql (find-tag "tag:yaml.org,2002:map")))
+                                &key
+                                anchor)
   ;; this is a problem since finish-node replaces the object
   ;; but noting the node in finish-node would break recursive structures
   ;; maybe register some kind of fixup when the node is referenced?
-  (note-node builder anchor (make-alist-node)))
+  ; (note-node builder anchor (make-alist-node))
+  (make-alist-node))
 
 (defmethod bp:relate ((builder native-builder)
                       (relate  (eql :entry))
@@ -321,7 +291,10 @@
                       (left    cons)
                       (right   t)
                       &key)
-  (setf (car left) (make-keyword (string-upcase right)))
+  (let ((key (typecase right
+               (string (make-keyword (string-upcase right)))
+               (t      right))))
+    (setf (car left) key))
   left)
 
 (defmethod bp:relate ((builder native-builder)

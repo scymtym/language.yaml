@@ -12,7 +12,8 @@
   :maintainer  "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
 
   :version     (:read-file-form "version-string.sexp")
-  :depends-on  ((:version "more-conditions"               "0.1")
+  :depends-on  ((:version "let-plus"                      "0.2")
+                (:version "more-conditions"               "0.1")
                 (:version "utilities.print-items"         "0.1")
 
                 (:version "architecture.builder-protocol" "0.10")
@@ -25,6 +26,7 @@
                  :pathname   "src/construct"
                  :serial     t
                  :components ((:file       "package")
+                              (:file       "mixins")
                               (:file       "lisp-builder"))))
 
   :in-order-to ((test-op (test-op "language.yaml.construct/test"))))
