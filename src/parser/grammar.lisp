@@ -929,12 +929,20 @@
      (make-collection-node style '(:flow :explicit) tag anchor content start end))))
 
 ;; TODO macro for this and ns-flow-node
+
 (defrule ns-flow-yaml-node/not-alias
+    ;; The (! (and s-separate c-flow-json-content)) after e-scalar is
+    ;; not in the standard, but how could things like
+    ;;
+    ;;   !!map { !!str "key" : !!str "value" }
+    ;;
+    ;; work otherwise?
     (or (and (and)               (and (and)      ns-flow-yaml-content))
         (and c-ns-properties (or (and s-separate ns-flow-yaml-content)
-                                 (and (and)      e-scalar))))
-  (:destructure ((&optional tag anchor) (separator content) &bounds start end)
-    (declare (ignore separator))
+                                 (and (and)      e-scalar (! (and s-separate c-flow-json-content))))))
+  (:destructure ((&optional tag anchor) (separator content &rest rest)
+                 &bounds start end)
+    (declare (ignore separator rest))
     (when content
       (make-flow-node tag anchor content start end))))
 
