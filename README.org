@@ -16,10 +16,14 @@
 * Related Work
 
   * http://www.yaml.org/spec/1.2/spec.html :: YAML specification
+
   * https://github.com/jasom/nyaml :: A lisp native YAML
        parser. Currently a work-in-progress
+
   * https://github.com/eudoxia0/cl-yaml :: A YAML parser and emitter
        built on top of libyaml. Uses the cl-libyaml library.
+
+  * https://nimyaml.org/ :: Seems to be a pretty cool implementation
 
 * Settings                                                         :noexport:
 
