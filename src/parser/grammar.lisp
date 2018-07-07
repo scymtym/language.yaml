@@ -78,7 +78,8 @@
                     ((&flet+ make-rule ((name expression))
                        (let ((rule-name (symbolicate '#:c- name)))
                          (push rule-name rule-names)
-                         `(defrule ,rule-name ,expression)))))
+                         `(defrule ,rule-name ,expression
+                            (:constant nil))))))
                `(progn
                   ,@(mapcar #'make-rule flow-specs)
                   (defrule c-flow-indicator (or ,@rule-names))
