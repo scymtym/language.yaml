@@ -33,7 +33,10 @@
   ;; Tag resolution protocol
   (:export
    #:expand-shorthand
-   #:find-shorthand)
+   #:find-shorthand) ; also setf
+
+  (:export
+   #:standard-expander)
 
   (:documentation
    "TODO"))

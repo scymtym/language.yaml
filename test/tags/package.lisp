@@ -7,6 +7,7 @@
 (cl:defpackage #:language.yaml.tags.test
   (:use
    #:cl
+   #:let-plus
 
    #:fiveam
 
