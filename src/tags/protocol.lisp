@@ -65,10 +65,9 @@
                                 (node-content t))
   (let+ (((&values tag arguments) (call-next-method)))
     (unless tag
-      (error "~@<Could not resolve tag ~A for node~@:_~
-              ~2@Tpath    ~:A~@:_~
-              ~2@Tkind    ~(~A~)~@:_~
-              ~2@Tcontent ~S~@:>"
-             (or tag "non-specific \"?\" (i.e. untagged)")
-             node-path node-kind node-content))
+      (error 'tag-resolution-error
+             :tag          tag
+             :node-path    node-path
+             :node-kind    node-kind
+             :node-content node-content))
     (values tag arguments)))

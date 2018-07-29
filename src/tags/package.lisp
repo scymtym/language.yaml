@@ -15,6 +15,10 @@
   (:shadow
    #:documentation)
 
+  ;; Conditions
+  (:export
+   #:tag-resolution-error)
+
   ;; Tag Protocol
   (:export
    #:name
