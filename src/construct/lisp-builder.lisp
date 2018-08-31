@@ -55,7 +55,6 @@
 (defmethod make-directive-node ((builder native-builder)
                                 (name    (eql :tag))
                                 &key handle prefix bounds)
-  (format t "make-directive-node :tag ~s -> ~s~%" handle prefix)
   (setf (language.yaml.tags:find-shorthand handle (expander builder)) prefix)
   nil)
 
