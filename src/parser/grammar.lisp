@@ -304,7 +304,14 @@
 
 (defrule b-l-trimmed
     (and b-non-content (+ l-empty))
-  (:constant #.(string #\Newline)))
+  (:function second)
+  (:lambda (line-feeds)
+    (let ((count (length line-feeds)))
+      (case count
+        (1 #.(string #\Newline))
+        (2 #.(make-string 2 :initial-element #\Newline))
+        (3 #.(make-string 3 :initial-element #\Newline))
+        (t (make-string count :initial-element #\Newline))))))
 
 (defrule b-as-space
     b-break
@@ -650,7 +657,7 @@
 (defrule nb-single-multi-line
     (and nb-ns-single-in-line (or s-single-next-line (* s-white)))
   (:destructure (first rest)
-    (format nil "~A~{ ~A~}" first rest)))
+    (format nil "~A~{ ~A~}" first rest))) ; TODO
 
 ;;; 7.3.3 Plain Style
 
@@ -708,13 +715,11 @@
 
 (defrule s-ns-plain-next-line
     (and s-flow-folded ns-plain-char nb-ns-plain-in-line)
-  (:function rest)
   (:text t))
 
 (defrule ns-plain-multi-line
     (and ns-plain-one-line (* s-ns-plain-next-line))
-  (:destructure (first rest)
-    (format nil "~A~{~%~A~}" first rest)))
+  (:text t))
 
 ;;; 7.4 Flow Collection Styles
 
@@ -1097,8 +1102,9 @@
     (parse '(* l-empty) text :start position :end end :raw t)))
 (defrule l-nb-literal-text
     (and #'l-nb-literal-text/helper s-indent (+ nb-char))
-  (:function third)
-  (:text t))
+  (:destructure (line-feeds indent content)
+    (declare (ignore indent))
+    (list* #\Newline (append line-feeds content))))
 
 (defrule b-nb-literal-next
     (and b-as-line-feed l-nb-literal-text)
@@ -1113,7 +1119,7 @@
       ((:end-scalar :empty)
        '())
       (t
-       (format nil "~A~{~%~A~}~@[~A~]~@[~A~]" first rest last trailing))))) ; TODO good idea?
+       (text (rest first) rest last trailing)))))
 
 ;;; 8.1.3 Folded Style
 

@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Unit tests for the grammar of the parser.yaml system.
 ;;;;
-;;;; Copyright (C) 2013, 2015, 2017 Jan Moringen
+;;;; Copyright (C) 2013, 2015, 2017, 2018 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -45,3 +45,57 @@
                             (finishes ,(make-parse-form)))))))))
          `(progn ,@(mapcar #'test-case inputs)))))
   (frob))
+
+(test folding.smoke
+
+  (is (equal (format nil "1 2 3~@
+                          4 5 6~@
+                          ~@
+                          7 8 9")
+             (language.yaml:load
+              (format nil "1 2~@
+                           3~@
+                           ~@
+                           4 5~@
+                           6~@
+                           ~@
+                           ~@
+                           7 8~@
+                           9"))))
+
+  (is (equal (format nil "1 2 3~@
+                          4 5 6~@
+                          ~@
+                          7 8 9")
+             (language.yaml:load
+              (format nil ">-~@
+                           1 2~@
+                           3~@
+                           ~@
+                           4 5~@
+                           6~@
+                           ~@
+                           ~@
+                           7 8~@
+                           9~%"))))
+
+  (is (equal (format nil "1 2~@
+                          3~@
+                          ~@
+                          4 5~@
+                          6~@
+                          ~@
+                          ~@
+                          7 8~@
+                          9")
+             (language.yaml:load
+              (format nil "|-~@
+                           1 2~@
+                           3~@
+                           ~@
+                           4 5~@
+                           6~@
+                           ~@
+                           ~@
+                           7 8~@
+                           9~%")))))
