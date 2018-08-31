@@ -127,10 +127,11 @@
                  content)) ; TODO may not accept TRUE
 
   (define-core-tag-mapping "tag:yaml.org,2002:int" (content (radix 10))
-    (parse-integer content :radix radix :start (case radix
-                                                 (8  2)
-                                                 (16 2)
-                                                 (t  0))))
+    (let ((digits (remove #\_ content)))
+      (parse-integer content :radix radix :start (case radix
+                                                   (8  2)
+                                                   (16 2)
+                                                   (t  0)))))
 
   (define-core-tag-mapping "tag:yaml.org,2002:float" (content)
     (esrap:parse 'parser.common-rules:float-literal content))
