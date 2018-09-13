@@ -47,14 +47,14 @@
 
 (defmethod make-directive-node ((builder native-builder)
                                 (name    (eql :yaml))
-                                &key version bounds)
+                                &key version)
   (unless (equal version '(1 . 2))
     (error "YAML version ~D.~D is not supported."
            (car version) (cdr version))))
 
 (defmethod make-directive-node ((builder native-builder)
                                 (name    (eql :tag))
-                                &key handle prefix bounds)
+                                &key handle prefix)
   (setf (language.yaml.tags:find-shorthand handle (expander builder)) prefix)
   nil)
 

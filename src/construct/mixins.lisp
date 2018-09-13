@@ -76,24 +76,27 @@
 
   (defmethod bp:make-node ((builder tag-based-builder-mixin)
                            (kind    (eql :scalar))
-                           &key
+                           &rest args &key
                            tag
                            content)
-    (let+ (((&values tag args) (resolve-tag builder tag '() kind content))
+    (let+ (((&values tag tag-args) (resolve-tag builder tag '() kind content))
            (node (apply #'make-node-using-tag builder kind tag
-                        :content content args)))
+                        :content content
+                        (append tag-args (remove-from-plist args :tag)))))
       node))
 
   (defmethod bp:make-node ((builder tag-based-builder-mixin)
                            (kind    (eql :sequence))
-                           &key tag)
-    (let+ (((&values tag args) (resolve-tag builder tag '() kind nil))
-           (node (apply #'make-node-using-tag builder kind tag args)))
-      node ))
+                           &rest args &key tag)
+    (let+ (((&values tag tag-args) (resolve-tag builder tag '() kind nil))
+           (node (apply #'make-node-using-tag builder kind tag
+                        (append tag-args (remove-from-plist args :tag)))))
+      node))
 
   (defmethod bp:make-node ((builder tag-based-builder-mixin)
                            (kind    (eql :mapping))
-                           &key tag)
-    (let+ (((&values tag args) (resolve-tag builder tag '() kind nil))
-           (node (apply #'make-node-using-tag builder kind tag args)))
+                           &rest args &key tag)
+    (let+ (((&values tag tag-args) (resolve-tag builder tag '() kind nil))
+           (node (apply #'make-node-using-tag builder kind tag
+                        (append tag-args (remove-from-plist args :tag)))))
       node)))
