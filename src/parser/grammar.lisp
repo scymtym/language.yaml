@@ -56,15 +56,15 @@
 ;;; 5.1 Character Set
 
 (defrule c-printable
-    (or #\Tab #\Newline #\Return
-        (character-ranges (#\  #\~))
-        #\Next-Line
-        (character-ranges (#\No-break_space #\UD7FF))                 ; 8 bit
-        (character-ranges (#\UE000 #\Replacement_character))          ; 16 bit
-        (character-ranges (#\Linear_b_syllable_b008_a #\U0010FFFF)))) ; 32 bit
+    (character-ranges
+     (#\                         #\~)                     ; 8 bit
+     #\Newline #\Tab #\Return #\Next-Line
+     (#\No-break_space           #\UD7FF)                 ; 16 bit
+     (#\UE000                    #\Replacement_character) ; 16 bit
+     (#\Linear_b_syllable_b008_a #\U0010FFFF)))           ; 32 bit
 
 (defrule nb-json
-    (or #\Tab (character-ranges (#\Space #\U0010FFFF))))
+    (character-ranges #\Tab (#\Space #\U0010FFFF)))
 
 ;;; 5.2 Character Encodings
 
@@ -153,14 +153,13 @@
     (character-ranges (#\0 #\9)))
 
 (defrule ns-hex-digit
-    (or ns-dec-digit
-        (or (character-ranges (#\A #\F)) (character-ranges (#\a #\f)))))
+    (or ns-dec-digit (character-ranges (#\A #\F) (#\a #\f))))
 
 (defrule ns-ascii-letter
-    (or (character-ranges (#\A #\Z)) (character-ranges (#\a #\z))))
+    (character-ranges (#\A #\Z) (#\a #\z)))
 
 (defrule ns-word-char
-    (or ns-dec-digit (or ns-ascii-letter #\-)))
+    (or ns-dec-digit ns-ascii-letter #\-))
 
 (defrule ns-uri-char
     (or (and #\% ns-hex-digit ns-hex-digit)
@@ -238,7 +237,7 @@
               (declare (type (and string (not (array nil))) text)
                        (type array-index                    position end))
               (let ((n *n*))
-                (declare (type array-index n))
+                (declare (type (or (eql -1) array-index) n))
                 (cond ((< n ,(if (eq operator '<) 1 0))
                        (values nil nil "Current indent is negative"))
                       ,@(when (eq operator '<)
@@ -251,6 +250,7 @@
                                                       :test-not #'char=
                                                       :start position :end end))
                               (indent       (- (or end-position end) position)))
+                         (declare (type array-index n))
                          (if (,(if (eq operator '<) '<= operator) indent n)
                              (values indent (or end-position end) t)
                              (values nil    position              "Unexpected indent")))))))
