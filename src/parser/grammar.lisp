@@ -230,44 +230,36 @@
 
 ;;; 6.1 Indentation Spaces
 
-;; TODO macro
+(macrolet
+    ((define-indent-rule (name operator)
+       (let ((function-name (symbolicate '#:parse- name)))
+         `(progn
+            (defun ,function-name (text position end)
+              (declare (type (and string (not (array nil))) text)
+                       (type array-index                    position end))
+              (let ((n *n*))
+                (declare (type array-index n))
+                (cond ((< n ,(if (eq operator '<) 1 0))
+                       (values nil nil "Current indent is negative"))
+                      ,@(when (eq operator '<)
+                          `(((zerop n)
+                             (values 0 position t))))
+                      (t
+                       (let* ((n            ,(if (eq operator '<) `(1- n) 'n))
+                              (end          (min end (+ position n)))
+                              (end-position (position #\Space text
+                                                      :test-not #'char=
+                                                      :start position :end end))
+                              (indent       (- (or end-position end) position)))
+                         (if (,(if (eq operator '<) '<= operator) indent n)
+                             (values indent (or end-position end) t)
+                             (values nil    position              "Unexpected indent")))))))
 
-(defun parse-s-indent (text position end)
-  (let ((n *n*))
-    (if (minusp n)
-        (values nil nil "Current indent is negative")
-        (multiple-value-call #'values
-          (parse `(and ,@(make-list n :initial-element 's-space)) #+TODO-later `(* s-space ,n ,n) text
-                 :start position :end end :junk-allowed t)
-          (when (zerop n) t)))))
-(defrule s-indent #'parse-s-indent
-  (:function length))
+            (defrule ,name #',function-name)))))
 
-(defun parse-s-indent-lt (text position end)
-  (if (< *n* 1)
-      (values nil nil "Current indent is negative")
-      (let ((n (max (1- *n*) 0))) ; TODO (< (1- *n*) 0) cannot happen
-        (multiple-value-call #'values
-          (parse `(or ,@(loop :for i :from n :downto 0
-                           :collect `(and ,@(make-list i :initial-element 's-space))))
-                 #+TODO-later `(* s-space 0 ,n)
-                 text :start position :end end :junk-allowed t)
-          t))))
-(defrule s-indent-lt #'parse-s-indent-lt
-  (:function length))
-
-(defun parse-s-indent-le (text position end)
-  (let ((n *n*))
-    (if (minusp n)
-        (values nil nil "Current indent is negative")
-        (multiple-value-call #'values
-          (parse `(or ,@(loop :for i :from n :downto 0
-                           :collect `(and ,@(make-list i :initial-element 's-space))))
-                                        ; `(* s-space 0 ,n)
-                 text :start position :end end :junk-allowed t)
-          t))))
-(defrule s-indent-le #'parse-s-indent-le
-  (:function length))
+  (define-indent-rule s-indent    =)
+  (define-indent-rule s-indent-lt <)
+  (define-indent-rule s-indent-le <=))
 
 ;;; 6.2 Separation Spaces
 
