@@ -18,11 +18,12 @@
 
   ;; Construct protocol
   (:export
-   #:make-directive-node)
+   #:make-directive-node
+   #:make-node-using-tag)
 
   (:export
    #:make-native-builder
    #:native-builder)
 
   (:documentation
-   "TODO"))
+   "\"Construct\" phase of YAML document loading."))

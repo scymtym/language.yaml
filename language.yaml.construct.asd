@@ -5,7 +5,7 @@
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
 (defsystem "language.yaml.construct"
-  :description "TODO"
+  :description "Constructing native representations of YAML 1.2 documents"
   :license     "LLGPLv3" ; see COPYING file for details
 
   :author      "Jan Moringen <jmoringe@techfak.uni-bielefeld.de>"
