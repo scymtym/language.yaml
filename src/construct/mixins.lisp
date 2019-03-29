@@ -69,9 +69,9 @@
 (flet ((resolve-tag (builder tag node-path node-kind node-content)
          (etypecase tag
            (string
-            (find-tag tag))
+            (tags:find-tag tag))
            ((or null (eql :non-specific))
-            (language.yaml.tags::resolve-tag
+            (tags::resolve-tag
              (resolver builder) tag node-path node-kind node-content)))))
 
   (defmethod bp:make-node ((builder tag-based-builder-mixin)

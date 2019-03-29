@@ -22,9 +22,9 @@
                           tag-based-builder-mixin)
   ((expander :initarg  :expander
              :reader   expander
-             :initform (make-instance 'language.yaml.tags::standard-expander)))
+             :initform (make-instance 'tags::standard-expander)))
   (:default-initargs
-   :resolver language.yaml.tags::*core-schema-resolver*))
+   :resolver tags::*core-schema-resolver*))
 
 (defun make-native-builder () ; TOOO initargs
   (make-instance 'native-builder))
@@ -55,7 +55,7 @@
 (defmethod make-directive-node ((builder native-builder)
                                 (name    (eql :tag))
                                 &key handle prefix)
-  (setf (language.yaml.tags:find-shorthand handle (expander builder)) prefix)
+  (setf (tags:find-shorthand handle (expander builder)) prefix)
   nil)
 
 ;;; Tag
@@ -71,7 +71,7 @@
     (:verbatim
      content)
     (:shorthand
-     (language.yaml.tags:expand-shorthand (expander builder) prefix suffix))
+     (tags:expand-shorthand (expander builder) prefix suffix))
     (:non-specific
      tag-kind)))
 
@@ -112,7 +112,7 @@
              `(defmethod make-node-using-tag
                   ((builder native-builder)
                    (kind    (eql :scalar))
-                   (tag     (eql (find-tag ,tag)))
+                   (tag     (eql (tags:find-tag ,tag)))
                    &key ,content-arg ,@keyword-args)
                 ,@(unless content-arg-p
                     `((declare (ignore ,content-arg))))
@@ -178,7 +178,7 @@
 
 (defmethod make-node-using-tag ((builder native-builder)
                                 (kind    (eql :sequence))
-                                (tag     (eql (find-tag "tag:yaml.org,2002:seq")))
+                                (tag     (eql (tags:find-tag "tag:yaml.org,2002:seq")))
                                 &key
                                 anchor)
   ;; this is a problem since finish-node replaces the object
@@ -241,7 +241,7 @@
 
 (defmethod make-node-using-tag ((builder native-builder)
                                 (kind    (eql :mapping))
-                                (tag     (eql (find-tag "tag:yaml.org,2002:map")))
+                                (tag     (eql (tags:find-tag "tag:yaml.org,2002:map")))
                                 &key
                                 anchor)
   ;; this is a problem since finish-node replaces the object

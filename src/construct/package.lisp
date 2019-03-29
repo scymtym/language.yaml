@@ -11,10 +11,9 @@
    #:let-plus)
 
   (:local-nicknames
-   (#:bp #:architecture.builder-protocol))
+   (#:bp   #:architecture.builder-protocol)
 
-  (:import-from #:language.yaml.tags
-   #:find-tag)
+   (#:tags #:language.yaml.tags))
 
   (:import-from #:more-conditions
    #:missing-required-initarg)
