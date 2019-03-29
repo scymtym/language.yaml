@@ -1,6 +1,6 @@
 ;;;; mixins.lisp --- Mixins used in the construct module.
 ;;;;
-;;;; Copyright (C) 2013-2018 Jan Moringen
+;;;; Copyright (C) 2013-2019 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -14,19 +14,31 @@
    ))
 
 (defmethod find-anchor ((container anchor-recording-mixin)
-                        (name      t))
-  (gethash name (anchors container)))
+                        (name      t)
+                        &key
+                        (if-does-not-exist #'error))
+  (let+ (((&values node found?) (gethash name (anchors container))))
+    (cond (found?
+           (values node t))
+          ((functionp if-does-not-exist)
+           (funcall if-does-not-exist  ; TODO add a test
+                    (make-condition 'anchor-missing-error :name name)))
+          (t
+           if-does-not-exist))))
 
 (defmethod (setf find-anchor) ((new-value t)
                                (container anchor-recording-mixin)
-                               (name      t))
+                               (name      t)
+                               &key
+                               if-does-not-exist)
+  (declare (ignore if-does-not-exist))
   (setf (gethash name (anchors container)) new-value))
 
 (defmethod bp:make-node ((builder anchor-recording-mixin)
                          (kind    (eql :alias))
                          &key
                          anchor)
-  (gethash anchor (anchors builder)))
+  (find-anchor builder anchor))
 
 (flet ((note-node (builder anchor node)
          (when anchor

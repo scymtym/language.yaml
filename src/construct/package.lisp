@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Package definition for the language.yaml system.
 ;;;;
-;;;; Copyright (C) 2013-2018 Jan Moringen
+;;;; Copyright (C) 2013-2019 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -15,6 +15,14 @@
 
   (:import-from #:language.yaml.tags
    #:find-tag)
+
+  (:import-from #:more-conditions
+   #:missing-required-initarg)
+
+  ;; Conditions
+  (:export
+   #:anchor-missing-error
+   #:name)
 
   ;; Construct protocol
   (:export

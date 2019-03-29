@@ -26,6 +26,7 @@
                  :pathname   "src/construct"
                  :serial     t
                  :components ((:file       "package")
+                              (:file       "conditions")
                               (:file       "protocol")
                               (:file       "mixins")
                               (:file       "lisp-builder"))))
