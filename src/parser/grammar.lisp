@@ -642,14 +642,11 @@
     (and s-flow-folded
          (? (and ns-single-char nb-ns-single-in-line
                  (or s-single-next-line (* s-white)))))
-  (:function second)
-  (:destructure (&optional first second rest)
-    (list* (concatenate 'string first second) rest))) ; TODO wrong for s-white case?
+  (:text t))
 
 (defrule nb-single-multi-line
     (and nb-ns-single-in-line (or s-single-next-line (* s-white)))
-  (:destructure (first rest)
-    (format nil "~A~{ ~A~}" first rest))) ; TODO
+  (:text t))
 
 ;;; 7.3.3 Plain Style
 

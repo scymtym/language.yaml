@@ -1,6 +1,6 @@
 ;;;; package.lisp --- Unit tests for the grammar of the parser.yaml system.
 ;;;;
-;;;; Copyright (C) 2013, 2015, 2017, 2018 Jan Moringen
+;;;; Copyright (C) 2013-2019 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -98,4 +98,24 @@
                            ~@
                            ~@
                            7 8~@
-                           9~%")))))
+                           9~%"))))
+
+      ;; Single quoted
+      (is (equal "foo"
+                 (language.yaml:load
+                  (format nil "'foo'"))))
+      (is (equal "foo "
+                 (language.yaml:load
+                  (format nil "'foo '"))))
+      (is (equal "foo bar"
+                 (language.yaml:load
+                  (format nil "'foo~@
+                                bar'"))))
+      (is (equal "foo bar "
+                 (language.yaml:load
+                  (format nil "'foo~@
+                                bar '"))))
+      (is (equal "foo bar "
+                 (language.yaml:load
+                  (format nil "'foo  ~@
+                                bar '")))))
