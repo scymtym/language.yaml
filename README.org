@@ -5,6 +5,10 @@
 #+KEYWORDS:    YAML, parser, unparser, esrap
 #+LANGUAGE:    en
 
+#+OPTIONS: H:2 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
+#+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
+#+SEQ_TODO: TODO STARTED | DONE
+
 * TODO Introduction
 
   This system provides processing of [[http://www.yaml.org/spec/1.2/spec.html][YAML 1.2]] documents.
@@ -24,8 +28,3 @@
        built on top of libyaml. Uses the cl-libyaml library.
 
   * https://nimyaml.org/ :: Seems to be a pretty cool implementation
-
-* Settings                                                         :noexport:
-
-#+OPTIONS: H:2 num:nil toc:t \n:nil @:t ::t |:t ^:t -:t f:t *:t <:t
-#+OPTIONS: TeX:t LaTeX:t skip:nil d:nil todo:t pri:nil tags:not-in-toc
