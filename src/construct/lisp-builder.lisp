@@ -1,6 +1,6 @@
 ;;;; native-builder.lisp --- Turns constructs into CL objects.
 ;;;;
-;;;; Copyright (C) 2013-2018 Jan Moringen
+;;;; Copyright (C) 2013-2019 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -286,10 +286,10 @@
                          &key)
   (cons nil nil))
 
-(defmethod bp:relate ((builder native-builder)
-                      (relate  (eql :key))
-                      (left    cons)
-                      (right   t)
+(defmethod bp:relate ((builder  native-builder)
+                      (relation (eql :key))
+                      (left     cons)
+                      (right    t)
                       &key)
   (let ((key (typecase right
                (string (make-keyword (string-upcase right)))
@@ -297,10 +297,10 @@
     (setf (car left) key))
   left)
 
-(defmethod bp:relate ((builder native-builder)
-                      (relate  (eql :value))
-                      (left    cons)
-                      (right   t)
+(defmethod bp:relate ((builder  native-builder)
+                      (relation (eql :value))
+                      (left     cons)
+                      (right    t)
                       &key)
   (setf (cdr left) right)
   left)
