@@ -1,6 +1,6 @@
 ;;;; language.yaml.parser.asd --- System definition for the language.yaml.parser system.
 ;;;;
-;;;; Copyright (C) 2012-2018 Jan Moringen
+;;;; Copyright (C) 2012-2019 Jan Moringen
 ;;;;
 ;;;; Author: Jan Moringen <jmoringe@techfak.uni-bielefeld.de>
 
@@ -44,6 +44,7 @@
                 (:version "fiveam"               "1.4")
                 (:version "esrap"                "0.14")
 
+                (:version "language.yaml"        (:read-file-form "version-string.sexp")) ; used in test, shouldn't be used
                 (:version "language.yaml.parser" (:read-file-form "version-string.sexp")))
 
   :components  ((:module     "test"
