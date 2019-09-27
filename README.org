@@ -13,9 +13,95 @@
 
   This system provides processing of [[http://www.yaml.org/spec/1.2/spec.html][YAML 1.2]] documents.
 
-* TODO Tutorial
+* STARTED Tutorial
 
-* TODO Dictionary
+  #+BEGIN_SRC lisp :exports results :results silent
+    (ql:quickload :language.yaml)
+  #+END_SRC
+
+  A high-level interface is provided in the ~language.yaml~ package:
+
+  #+BEGIN_SRC lisp :exports both :results value verbatim
+    (language.yaml:load "- foo: bar
+      baz: fez
+    - 2
+    - 3")
+  #+END_SRC
+
+  #+RESULTS:
+  : (((:FOO . "bar") (:BAZ . "fez")) 2 3)
+
+  #+BEGIN_SRC lisp :exports both :results output verbatim
+    (language.yaml:dump '(("foo" . "bar") ("baz" . "fez")) *standard-output*)
+  #+END_SRC
+
+  #+RESULTS:
+
+* STARTED Dictionary
+
+  #+BEGIN_SRC lisp :exports results :results silent
+    (ql:quickload '(:alexandria :split-sequence
+                    :parser.common-rules :parser.common-rules.operators))
+    (defun doc (symbol kind)
+      (let* ((lambda-list (sb-introspect:function-lambda-list symbol))
+             (string      (or (documentation symbol kind)
+                              (error "~@<~A ~S is not documented.~@:>"
+                                     kind symbol)))
+             (lines       (split-sequence:split-sequence #\Newline string))
+             (strip       (reduce
+                           #'min (rest lines)
+                           :key (lambda (line)
+                                  (or (position #\Space line :test-not #'char=)
+                                      most-positive-fixnum))))
+             (trimmed     (mapcar (lambda (line)
+                                    (subseq line (min strip (length line))))
+                                  (rest lines))))
+        (format nil "~(~A~) ~<~{~A~^ ~}~:@>~2%~{~A~^~%~}"
+                symbol (list lambda-list) (list* (first lines) trimmed))))
+  #+END_SRC
+
+  #+BEGIN_SRC lisp :exports results :results value
+    (doc 'language.yaml:dump 'function)
+  #+END_SRC
+
+  #+RESULTS:
+  #+begin_example
+  dump THING DESTINATION &KEY BUILDER
+
+  Dump THING into DESTINATION using builder.
+
+  The dump operation consists of transforming THING into a tree of
+  YAML nodes, serializing the tree and emitting a stream of
+  characters.
+
+  THING can be any Lisp object as long as BUILDER can handle it.
+
+  DESTINATION can be a character output `stream' or `pathname'.
+
+  BUILDER, if supplied, controls how objects are represented and
+  recursively destructured, starting with THING.
+  #+end_example
+
+  #+BEGIN_SRC lisp :exports results :results value
+    (doc 'language.yaml:load 'function)
+  #+END_SRC
+
+  #+RESULTS:
+  #+begin_example
+  load SOURCE &KEY BUILDER RULE
+
+  Load and return YAML information from source.
+
+  The load operation consists of parsing the character stream,
+  composing YAML nodes and finally constructing corresponding native
+  representations (Lisp objects).
+
+  SOURCE can be a `string', a character input `stream' or a
+  `pathname' designating an existing file.
+
+  BUILDER, if supplied, controls how native representations are
+  constructed from YAML nodes.
+  #+end_example
 
 * Related Work
 
